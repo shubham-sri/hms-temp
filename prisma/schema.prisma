@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  userId   String @unique
+  name     String
+  password String
+
+  @@map("users")
+}
+
+model Department {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  doctor Doctor[]
+  appointment Appointment[]
+
+  @@map("departments")
+}
+
+model Doctor {
+  id            Int         @id @default(autoincrement())
+  name          String
+  designation   String
+  departmentId  Int
+  department    Department  @relation(fields: [departmentId], references: [id])
+  appointment   Appointment[]
+
+  @@map("doctors")
+}
+
+enum Tags {
+  GOV // government
+  DM  // district magistrate
+  ADM // additional district magistrate
+  SDM // sub divisional magistrate
+  SP  // superintendant of police
+  PR  // pradhan
+  POL // police
+  PLI // political leader
+  OTH // other
+}
+
+enum Gender {
+  M
+  F
+}
+
+model Patient {
+  id      Int      @id @default(autoincrement())
+  name    String
+  age     Int
+  gender  Gender
+  tags    Tags[]
+  address String
+  mobileNumber String @default("")
+  createdAt DateTime @default(now())
+  appointment Appointment[]
+
+  @@map("patients")
+}
+
+model Appointment {
+  id            Int       @id @default(autoincrement())
+  appointmentNo Int       
+  departmentId  Int
+  doctorId      Int
+  patientId     Int
+  date          DateTime @default(now())
+  department    Department @relation(fields: [departmentId], references: [id])
+  doctor        Doctor     @relation(fields: [doctorId], references: [id])
+  patient       Patient    @relation(fields: [patientId], references: [id])
+  vital         Vital?
+  dateStr       String
+  isPaymentNeeded Boolean @default(true)
+  isPaid Boolean @default(false)
+  lastAppointmentId Int?
+  lastAppointment Appointment? @relation("BlogOwnerHistory", fields: [lastAppointmentId], references: [id])
+  appointment Appointment[] @relation("BlogOwnerHistory")
+
+  @@map("appointments")
+}
+
+model Vital {
+  id          Int     @id @default(autoincrement())
+  isDiabetic  Boolean @default(false)
+  isBP        Boolean @default(false)
+  isPregnant  Boolean @default(false)
+  isOtherDiseases Boolean @default(false)
+  appointmentId Int @unique
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@map("vitals")
+}
