@@ -8,7 +8,6 @@ class PrismaClientSingleton {
     public static getInstance(): PrismaClient {
         if (!PrismaClientSingleton.instance) {
             PrismaClientSingleton.instance = new PrismaClient();
-            console.log('new client')
         }
         return PrismaClientSingleton.instance;
     }

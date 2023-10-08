@@ -12,7 +12,7 @@ export default function Department() {
 
   const { isLoggedIn, loading } = useValidateLogin();
   const [loadingDepartment, setLoadingDepartment] = useState(false);
-  const [departments, setDepartments] = useState([])
+  const [departments, setDepartments] = useState<undefined | []>(undefined)
   const router = useRouter();
 
   useEffect(() => {
@@ -22,11 +22,12 @@ export default function Department() {
   }, [loading, isLoggedIn, router]);
 
   useEffect(() => {
-    if(loadingDepartment){
+    if(loadingDepartment || departments){
       return;
     }
     const fetchData = async () => {
       try {
+        setLoadingDepartment(true);
         const response = await fetch('/api/department');
 
         if (!response.ok) {
@@ -34,10 +35,10 @@ export default function Department() {
         }
 
         const data: any = await response.json();
-        console.log(data);
         setDepartments(data);
       } catch (err) {
-        console.log(err);
+      } finally {
+        setLoadingDepartment(false);
       }
     };
 
@@ -66,7 +67,6 @@ export default function Department() {
       const data = await response.json();
 
       // Handle the response data as needed.
-      console.log("Server Response:", data);
 
     } catch (error) {
       console.error("There was an error adding the department:", error);
@@ -74,6 +74,32 @@ export default function Department() {
       setLoadingDepartment(false)
     }
   }
+
+  const [isOnline, setIsOnline] = useState(false);
+  		
+  useEffect(() => {
+    async function onlineHandler() {
+      setIsOnline(true);
+      await fetch('/api/internet?online=true', {method: 'GET'});
+    }
+
+    async function offlineHandler() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener("online", onlineHandler);
+    window.addEventListener("offline", offlineHandler);
+
+    if(navigator.onLine){
+      onlineHandler();
+    }
+
+
+    return () => {
+        window.removeEventListener("online", onlineHandler);
+        window.removeEventListener("offline", offlineHandler);
+    };
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -122,6 +148,17 @@ export default function Department() {
                 Logout
               </button>
             </li>
+            <li className=" mt-20">
+              <div 
+                className={
+                  `block w-full text-left px-4 py-2 
+                  rounded text-white 
+                  transition duration-300
+                  ${isOnline ? 'bg-green-500' : 'bg-red-500'}`
+                }>
+                {isOnline ? 'Online' : 'Offline'}
+              </div>
+            </li>
           </ul>
         </div>
       </div>
@@ -134,7 +171,7 @@ export default function Department() {
         <div
           className='mt-10'
         >
-          {loadingDepartment ? <p>Getting...</p>  : <DepartmentList departments={departments}/>}
+          {loadingDepartment ? <p>Getting...</p>  : <DepartmentList departments={departments ?? []}/>}
         </div>
       </div>
     </div>

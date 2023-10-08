@@ -1,6 +1,8 @@
+import logRequest from '@/utils/log';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+  logRequest(req, res);
   if (req.method !== 'POST') {
     return res.status(405).end();  // Method not allowed if not POST
   }

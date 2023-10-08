@@ -2,6 +2,7 @@ import validateToken from '@/utils/validateToken';
 import { NextApiRequest, NextApiResponse } from 'next';
 import moment from 'moment-timezone';
 import {prisma} from '@/utils/DBClient';
+import logRequest from '@/utils/log';
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
@@ -25,13 +26,13 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 const addAppointment = async (req: NextApiRequest, res: NextApiResponse) => {
   const { patientId, patientDetails, vitals, departmentId, doctorId, isPaid } = req.body;
   
-  const isValidToken = await validateToken(req, res);
+  const isValidToken: any = await validateToken(req, res);
 
   if(!isValidToken){
     return res.status(401).send({error: 'Not authenticated.'});
   }
 
-  console.log('isValidToken', isValidToken);
+  logRequest(req, res);
 
   if ((!patientId && !patientDetails) || !departmentId || !doctorId) {
     return res.status(400).json({ error: 'The necessary details are missing to add an appointment.' });
@@ -90,7 +91,6 @@ const addAppointment = async (req: NextApiRequest, res: NextApiResponse) => {
             
 
     if (patientDetails && !patientId) {
-      console.log('patientDetails', patientDetails.tags);
       const newPatient = await prisma.patient.create({
         data: {
             name: patientDetails.name,

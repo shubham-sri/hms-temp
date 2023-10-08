@@ -38,7 +38,6 @@ const AddDoctorForm: React.FC<Props> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle submission logic here, like making an API call to add the doctor.
-    console.log({ name, designation, department });
     if (onAddDoctor && department) {
       onAddDoctor(name, designation, parseInt(department));
     }

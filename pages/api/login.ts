@@ -1,10 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 import {prisma} from '@/utils/DBClient';
+import logRequest from '@/utils/log';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export default async function login(req: NextApiRequest, res: NextApiResponse) {
+  logRequest(req, res);
   if (req.method !== 'POST') {
     return res.status(405).end();
   }

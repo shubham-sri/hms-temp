@@ -3,15 +3,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import {prisma} from '@/utils/DBClient';
 import moment from 'moment-timezone';
+import logRequest from '@/utils/log';
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+    logRequest(req, res);
     if (req.method !== 'GET') {
         return res.status(405).end(); // Method not allowed if not GET
     }
 
     const { date } = req.query;
-
-    console.log('date', date)
 
     if (!date || typeof date !== 'string') {
         return res.status(400).json({ error: 'Date is required as a query parameter.' });

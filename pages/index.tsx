@@ -73,7 +73,6 @@ export default function Login() {
     }
   }, [error]);
 
-  console.log('validateLoading', validateLoading);
 
 
   if (validateLoading || isLoggedIn) {

@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import moment from 'moment-timezone';
 import {prisma} from '@/utils/DBClient';
 import validateToken from '@/utils/validateToken';
+import logRequest from '@/utils/log';
 
 interface EditBody {
     appointmentId?: number,
@@ -47,6 +48,8 @@ const editAppointment = async (req: NextApiRequest, res: NextApiResponse) => {
   if(!isValidToken){
     return res.status(401).send({error: 'Not authenticated.'});
   }
+
+  logRequest(req, res);
 
   const { patientId, patientDetails, vitals, departmentId, doctorId, isPaid, appointmentId } = req.body as EditBody;
 

@@ -30,7 +30,6 @@ export default function Doctor() {
     });
     const data = await res.json();
     setLoadingDoctor(false);
-    console.log(data);
   }
 
   useEffect(() => {
@@ -52,7 +51,6 @@ export default function Doctor() {
         }
 
         const data: any = await response.json();
-        console.log(data);
         setDoctors(data);
       } catch (err) {
         console.log(err);
@@ -61,6 +59,32 @@ export default function Doctor() {
 
     fetchData();
   }, [loadingDoctor]);
+
+  const [isOnline, setIsOnline] = useState(false);
+  		
+  useEffect(() => {
+    async function onlineHandler() {
+      setIsOnline(true);
+      await fetch('/api/internet?online=true', {method: 'GET'});
+    }
+
+    async function offlineHandler() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener("online", onlineHandler);
+    window.addEventListener("offline", offlineHandler);
+
+    if(navigator.onLine){
+      onlineHandler();
+    }
+
+
+    return () => {
+        window.removeEventListener("online", onlineHandler);
+        window.removeEventListener("offline", offlineHandler);
+    };
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -108,6 +132,17 @@ export default function Doctor() {
               >
                 Logout
               </button>
+            </li>
+            <li className=" mt-20">
+              <div 
+                className={
+                  `block w-full text-left px-4 py-2 
+                  rounded text-white 
+                  transition duration-300
+                  ${isOnline ? 'bg-green-500' : 'bg-red-500'}`
+                }>
+                {isOnline ? 'Online' : 'Offline'}
+              </div>
             </li>
           </ul>
         </div>

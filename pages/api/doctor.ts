@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import validateToken from '@/utils/validateToken';
 import {prisma} from '@/utils/DBClient';
+import logRequest from '@/utils/log';
 
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
@@ -27,9 +28,9 @@ const addDoctor = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(401).send({error: 'Not authenticated.'});
     }
 
-    const { name, designation, department } = req.body;
+    logRequest(req, res);
 
-    console.log(Object.keys(req.body), name, designation, department);
+    const { name, designation, department } = req.body;
 
     if (!name || !designation || !department) {
         return res.status(400).json({ error: 'Name, designation, and department ID are required to add a new doctor.' });

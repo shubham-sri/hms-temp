@@ -195,7 +195,6 @@ const EditAppointments: React.FC<Props> = ({
         }
         const data: any[] = await response.json();
         setDoctors(data);
-        console.log('app doc', doctors);
       } catch (err) {
         console.error('Error fetching doctors:', err);
       } finally {

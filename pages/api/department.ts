@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import validateToken from '@/utils/validateToken';
 import {prisma} from '@/utils/DBClient';
+import logRequest from '@/utils/log';
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
@@ -26,6 +27,8 @@ const addDepartment = async (req: NextApiRequest, res: NextApiResponse) => {
   if(!isValidToken){
     return res.status(401).send({error: 'Not authenticated.'});
   }
+
+  logRequest(req, res);
 
   const { name } = req.body;
 

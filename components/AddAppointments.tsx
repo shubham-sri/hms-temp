@@ -10,6 +10,7 @@ const customStyles = {
     bottom: 'auto',
     transform: 'translate(-30%, -30%)',
     width: '80%',
+    maxHeight: '80%',
   },
 };
 
@@ -82,8 +83,24 @@ const AddAppointments: React.FC<Props> = ({
   const [oldPatientList, setOldPatient] = useState<any[]>([]);
   const [searchMobNo, setSearchMobNo] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [searchName, setSearchName] = useState<string>('');
+  const [filteredOldPatients, setFilteredOldPatients] = useState<any[]>([]);
+
 
   const [isErrorMob, setIsErrorMob] = useState(false);
+
+  useEffect(() => {
+    if(searchName?.length === 0 || !searchName) {
+      setFilteredOldPatients(oldPatientList);
+      return;
+    }
+    const filteredPatients = oldPatientList.filter(patient => patient.name.toLowerCase().includes(searchName.toLowerCase()));
+    setFilteredOldPatients(filteredPatients);
+  }, [searchName, oldPatientList]);
+
+  useEffect(() => {
+    Modal.setAppElement('body');
+  }, []);
 
   useEffect(() => {
     if(id?.length === 0) {
@@ -138,7 +155,6 @@ const AddAppointments: React.FC<Props> = ({
   }, [id]);
 
   useEffect(() => {
-    console.log('mobNo', mobNo, searchMobNo);
     if(mobNo?.length === 0) {
       setFetchingPatient(false);
       setSearchMobNo(false);
@@ -150,17 +166,15 @@ const AddAppointments: React.FC<Props> = ({
       return;
     }
 
-    if(mobNo.length === 10 && !searchMobNo) {
+    if(mobNo.length === 10 && !searchMobNo && !fetchedPatient && id.length === 0) {
       setFetchingPatient(true);
 
       const fetchPatientByNumber = async () => {
         try {
           const response = await fetch(`/api/patient?phoneNumber=${mobNo}`);
           const data: any = await response.json();
-          console.log('data', data);
           if (response.ok) {
             if(data?.length > 0) {
-              console.log('data', data);
               setOldPatient(data);
               setOpenModal(true);
             }
@@ -204,7 +218,6 @@ const AddAppointments: React.FC<Props> = ({
         }
         const data: any[] = await response.json();
         setDoctors(data);
-        console.log('app doc', doctors);
       } catch (err) {
         console.error('Error fetching doctors:', err);
       } finally {
@@ -511,25 +524,47 @@ const AddAppointments: React.FC<Props> = ({
       </button>
       <Modal
         isOpen={openModal}
-        onRequestClose={() => setOpenModal(false)}
+        onRequestClose={() => {
+          setOpenModal(false);
+          setSearchName('');
+        }}
         style={customStyles}
         contentLabel="Example Modal"
       >
-        <table className="table-auto w-full">
+        {oldPatientList.length > 10 
+        ? <div>
+            <input 
+              type="text" 
+              id="name" 
+              placeholder="Search by Patient Name"
+              value={searchName} 
+              onChange={(e:any) => setSearchName(e.target.value)}
+              className="mt-1 py-3 px-2 w-full border rounded-md my-1"
+            />
+          </div>
+        : <></>}
+        <button
+          className="px-4 py-2 mb-1 bg-teal-700 text-white rounded hover:bg-teal-600"
+          onClick={() => setOpenModal(false)}
+        >
+          Close
+        </button>
+        <table className="table-auto w-full h-40 overflow-scroll">
           <thead>
             <tr>
               <th className="py-1 border">Select</th>
               <th className="py-1 border">P. Id.</th>
               <th className="py-1 border">Name</th>
+              <th className="py-1 border">Address</th>
               <th className="py-1 border">Age</th>
               <th className="py-1 border">Gender</th>
             </tr>
           </thead>
           <tbody>
-            {oldPatientList.map((patient) => {
+            {filteredOldPatients.map((patient) => {
               return (
                 <tr key={patient.id} className="hover:bg-gray-200">
-                  <td className="py-2 border flex justify-center">
+                  <td className="py-1 border w-5">
                     <input 
                       type="radio" 
                       id="old_patient" 
@@ -541,24 +576,20 @@ const AddAppointments: React.FC<Props> = ({
                         setId(formattedId);
                         setOpenModal(false);
                       }}
-                      className="mr-2"
+                      className="ml-3"
                     />
                   </td>
-                  <td className="py-1 border">{patient.id}</td>
-                  <td className="py-1 border">{patient.name}</td>
-                  <td className="py-1 border">{patient.age}</td>
-                  <td className="py-1 border">{patient.gender}</td>
+                  <td className="py-1 border px-3">{patient.id}</td>
+                  <td className="py-1 border px-3">{patient.name}</td>
+                  <td className="py-1 border px-3">{patient.address}</td>
+                  <td className="py-1 border px-3">{patient.age}</td>
+                  <td className="py-1 border px-3">{patient.gender}</td>
                 </tr>
               )
             })}
           </tbody>
         </table>
-        <button
-          className="px-4 py-2 mt-3 bg-teal-700 text-white rounded hover:bg-teal-600"
-          onClick={() => setOpenModal(false)}
-        >
-          Close
-        </button>
+        
       </Modal>
     </form>
   );

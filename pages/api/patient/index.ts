@@ -23,6 +23,10 @@ const getPatient = async (req: NextApiRequest, res: NextApiResponse, phoneNumber
     return res.status(400).json({ error: 'Patient phone number is required.' });
   }
 
+  // if(phoneNumber === '1234567890' || phoneNumber === '0987654321' || phoneNumber === '0000000000') {
+  //   return res.status(200).json([]);
+  // }
+
   try {
     const patient = await prisma.patient.findMany({where: { mobileNumber: {
         equals: phoneNumber,
