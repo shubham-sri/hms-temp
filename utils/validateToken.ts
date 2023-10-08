@@ -17,7 +17,7 @@ export default async function validate(req: NextApiRequest, res: NextApiResponse
   try {
     // Verify the token with the secret key
     const decoded = jwt.verify(token, JWT_SECRET as string);
-    return true;
+    return decoded;
 
   } catch (error) {
     // If the token is expired or has any other error, return a 401 status

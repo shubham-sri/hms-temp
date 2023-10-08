@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import Modal from 'react-modal';
 import { toast } from 'react-toastify';
+const customStyles = {
+  content: {
+    top: '30%',
+    left: '40%',
+    right: 'auto',
+    bottom: 'auto',
+    transform: 'translate(-30%, -30%)',
+    width: '80%',
+  },
+};
 
 const TagsValues = [
   'GOV',
@@ -67,6 +79,9 @@ const AddAppointments: React.FC<Props> = ({
   const [doctors, setDoctors] = useState<any[]>([]);
   const [fetchedPatient, setFetchedPatient] = useState<any | undefined>(undefined);
   const [fetchingPatient, setFetchingPatient] = useState<boolean>(false);
+  const [oldPatientList, setOldPatient] = useState<any[]>([]);
+  const [searchMobNo, setSearchMobNo] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
 
   const [isErrorMob, setIsErrorMob] = useState(false);
 
@@ -121,6 +136,45 @@ const AddAppointments: React.FC<Props> = ({
 
     fetchPatient();
   }, [id]);
+
+  useEffect(() => {
+    console.log('mobNo', mobNo, searchMobNo);
+    if(mobNo?.length === 0) {
+      setFetchingPatient(false);
+      setSearchMobNo(false);
+      return;
+    }
+    if(mobNo.length < 10 || mobNo.length > 10) {
+      setFetchingPatient(false);
+      setSearchMobNo(false);
+      return;
+    }
+
+    if(mobNo.length === 10 && !searchMobNo) {
+      setFetchingPatient(true);
+
+      const fetchPatientByNumber = async () => {
+        try {
+          const response = await fetch(`/api/patient?phoneNumber=${mobNo}`);
+          const data: any = await response.json();
+          console.log('data', data);
+          if (response.ok) {
+            if(data?.length > 0) {
+              console.log('data', data);
+              setOldPatient(data);
+              setOpenModal(true);
+            }
+          }
+          setFetchingPatient(false);
+        } catch (err: any) {
+          setFetchingPatient(false);
+          console.error('Error fetching patient:', err); 
+        }
+      }
+      fetchPatientByNumber();
+      setSearchMobNo(true);
+    }
+  }, [id, mobNo, searchMobNo]);
   
   // Fetch departments for the dropdown
   useEffect(() => {
@@ -455,6 +509,57 @@ const AddAppointments: React.FC<Props> = ({
       >
         {loading ? 'Adding...' : 'Book Appointment'}
       </button>
+      <Modal
+        isOpen={openModal}
+        onRequestClose={() => setOpenModal(false)}
+        style={customStyles}
+        contentLabel="Example Modal"
+      >
+        <table className="table-auto w-full">
+          <thead>
+            <tr>
+              <th className="py-1 border">Select</th>
+              <th className="py-1 border">P. Id.</th>
+              <th className="py-1 border">Name</th>
+              <th className="py-1 border">Age</th>
+              <th className="py-1 border">Gender</th>
+            </tr>
+          </thead>
+          <tbody>
+            {oldPatientList.map((patient) => {
+              return (
+                <tr key={patient.id} className="hover:bg-gray-200">
+                  <td className="py-2 border flex justify-center">
+                    <input 
+                      type="radio" 
+                      id="old_patient" 
+                      name="old_patient" 
+                      value={patient.id}
+                      onChange={(e:any) => {
+                        const id = parseInt(e.target.value);
+                        const formattedId = id.toString().padStart(7, '0');
+                        setId(formattedId);
+                        setOpenModal(false);
+                      }}
+                      className="mr-2"
+                    />
+                  </td>
+                  <td className="py-1 border">{patient.id}</td>
+                  <td className="py-1 border">{patient.name}</td>
+                  <td className="py-1 border">{patient.age}</td>
+                  <td className="py-1 border">{patient.gender}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <button
+          className="px-4 py-2 mt-3 bg-teal-700 text-white rounded hover:bg-teal-600"
+          onClick={() => setOpenModal(false)}
+        >
+          Close
+        </button>
+      </Modal>
     </form>
   );
 };

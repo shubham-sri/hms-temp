@@ -1,3 +1,4 @@
+import validateToken from '@/utils/validateToken';
 import { NextApiRequest, NextApiResponse } from 'next';
 import moment from 'moment-timezone';
 import {prisma} from '@/utils/DBClient';
@@ -23,6 +24,14 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
 const addAppointment = async (req: NextApiRequest, res: NextApiResponse) => {
   const { patientId, patientDetails, vitals, departmentId, doctorId, isPaid } = req.body;
+  
+  const isValidToken = await validateToken(req, res);
+
+  if(!isValidToken){
+    return res.status(401).send({error: 'Not authenticated.'});
+  }
+
+  console.log('isValidToken', isValidToken);
 
   if ((!patientId && !patientDetails) || !departmentId || !doctorId) {
     return res.status(400).json({ error: 'The necessary details are missing to add an appointment.' });
@@ -107,6 +116,7 @@ const addAppointment = async (req: NextApiRequest, res: NextApiResponse) => {
         isPaid: isPaid,
         dateStr: moment(date).tz('Asia/Kolkata').format('DD/MM/YYYY'),
         lastAppointmentId: lastAppointmentOfPatient?.id,
+        createdById: isValidToken.id,
       },
     });
 
@@ -130,6 +140,12 @@ const addAppointment = async (req: NextApiRequest, res: NextApiResponse) => {
 
 const getAppointmentByDate = async (req: NextApiRequest, res: NextApiResponse, date: any) => {
   try {
+    const isValidToken = await validateToken(req, res);
+
+    if(!isValidToken){
+      return res.status(401).send({error: 'Not authenticated.'});
+    }
+
     if(typeof date !== 'string') {
       date = moment(new Date())
         .tz('Asia/Kolkata')

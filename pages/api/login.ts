@@ -29,7 +29,7 @@ export default async function login(req: NextApiRequest, res: NextApiResponse) {
   // But for this example, we'll just return a success message.
 
   // Create a new token with the userId in the payload
-  const token = jwt.sign({ userId: user.userId }, JWT_SECRET as string, {
+  const token = jwt.sign({ userId: user.userId, id: user.id, }, JWT_SECRET as string, {
     expiresIn: '18h', // Set expiration as needed.
   });
 

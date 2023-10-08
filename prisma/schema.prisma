@@ -16,6 +16,8 @@ model User {
   name     String
   password String
 
+  appointment Appointment[]
+
   @@map("users")
 }
 
@@ -87,6 +89,9 @@ model Appointment {
   lastAppointmentId Int?
   lastAppointment Appointment? @relation("BlogOwnerHistory", fields: [lastAppointmentId], references: [id])
   appointment Appointment[] @relation("BlogOwnerHistory")
+  createdAt     DateTime  @default(now())
+  createdById   Int      @default(1)
+  createdBy     User     @relation(fields: [createdById], references: [id])
 
   @@map("appointments")
 }
